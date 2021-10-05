@@ -1,0 +1,28 @@
+version: '3.6'
+services:
+  timescale:
+    image: timescale/timescaledb:latest-pg12
+    restart: always
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: postgrespassword
+  graphql-engine:
+    image: hasura/graphql-engine:v2.0.8
+    ports:
+      - "8080:8080"
+    depends_on:
+      - "timescale"
+    restart: always
+    env_file:
+      - .env
+    environment:
+      HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:postgrespassword@timescale:5432/postgres
+      HASURA_GRAPHQL_ENABLE_CONSOLE: "true" # set to "false" to disable console
+      ACTION_BASE_URL: "http://host.docker.internal:3000"
+      ## uncomment next line to set an admin secret
+      #HASURA_GRAPHQL_ADMIN_SECRET: myadminsecretkey
+volumes:
+  db_data:
